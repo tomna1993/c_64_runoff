@@ -77,6 +77,11 @@ int main(int argc, char *argv[])
         printf ("\n");
     }
 
+    // Total votes required to win the election
+    int required_votes_to_win = (voter_count * 0.5) + 1;
+
+    tabulate()
+
     return EXIT_SUCCESS;
 }
 
