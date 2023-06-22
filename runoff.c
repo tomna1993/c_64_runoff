@@ -18,6 +18,7 @@ struct candidate
 bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count);
 int tabulate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], int voter_count, struct candidate candidates[MAX_CANDIDATES], int candidate_count);
 bool print_winner(struct candidate candidates[MAX_CANDIDATES], int candidate_count, int required_votes_to_win);
+int find_min(struct candidate candidates[MAX_CANDIDATES], int candidate_count);
 
 
 int main(int argc, char *argv[])
@@ -83,9 +84,18 @@ int main(int argc, char *argv[])
 
     tabulate(preferences, voter_count, candidates, candidate_count);
 
-    print_winner(candidates, candidate_count, required_votes_to_win);
+    bool found_winner = print_winner(candidates, candidate_count, required_votes_to_win);
 
-    return EXIT_SUCCESS;
+    if (found_winner)
+    {
+        return EXIT_SUCCESS;
+    }
+
+    int min_vote = find_min(candidates, candidate_count);
+
+    printf ("Min votes: %i\n", min_vote);
+
+    return EXIT_FAILURE;
 }
 
 
@@ -139,8 +149,21 @@ bool print_winner(struct candidate candidates[MAX_CANDIDATES], int candidate_cou
 }
 
 
-int find_min()
+int find_min(struct candidate candidates[MAX_CANDIDATES], int candidate_count)
 {
+    int cand = 0;
+
+    int min_votes = candidates[cand++].Votes;
+
+    for (; cand < candidate_count;cand++)
+    {
+        if (candidates[cand].Votes < min_votes)
+        {
+            min_votes = candidates[cand].Votes;
+        }
+    }
+
+    return min_votes;
 }
 
 
