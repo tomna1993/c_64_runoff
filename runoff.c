@@ -16,7 +16,7 @@ struct candidate
 };
 
 bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count);
-
+int tabulate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], int voter_count, struct candidate candidates[MAX_CANDIDATES], int candidate_count);
 
 int main(int argc, char *argv[])
 {
@@ -29,16 +29,15 @@ int main(int argc, char *argv[])
     }
 
     // Create a candidates struct to hold informations about the candidates 
-    struct candidate candidates[candidate_count];
-
+    struct candidate candidates[MAX_CANDIDATES];
 
     // Save candidate names into structure
-    for (int i = 0; i < candidate_count; i++)
+    for (int cand = 0; cand < candidate_count; cand++)
     {
-        strcpy(candidates[i].Name, argv[i + 1]);
+        strcpy(candidates[cand].Name, argv[cand + 1]);
 
-        candidates[i].Votes = 0;
-        candidates[i].Eliminated = false;
+        candidates[cand].Votes = 0;
+        candidates[cand].Eliminated = false;
     }
 
     int number_of_voters;
@@ -54,7 +53,7 @@ int main(int argc, char *argv[])
     const int voter_count = number_of_voters;
 
     // Create an array to hold the preferences of voters
-    char preferences[voter_count][candidate_count][MAX_CHARS];
+    char preferences[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS];
 
     // LOOP to ask for votes
     for (int voter = 0; voter < voter_count; voter++)
@@ -80,7 +79,7 @@ int main(int argc, char *argv[])
     // Total votes required to win the election
     int required_votes_to_win = (voter_count * 0.5) + 1;
 
-    tabulate()
+    tabulate(preferences, voter_count, candidates, candidate_count);
 
     return EXIT_SUCCESS;
 }
@@ -88,9 +87,9 @@ int main(int argc, char *argv[])
 
 bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count)
 {
-    for (int i = 0; i < candidate_count; i++)
+    for (int cand = 0; cand < candidate_count; cand++)
     {
-        if (strcmp (name, candidates[i].Name) == 0)
+        if (strcmp (candidates[cand].Name, name) == 0)
         {
             strcpy (preference[voter][rank], name);
     
@@ -102,8 +101,23 @@ bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS]
 }
 
 
-int tabulate()
+int tabulate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], int voter_count, struct candidate candidates[MAX_CANDIDATES], int candidate_count)
 {
+    const int rank = 0;
+
+    for (int voter = 0; voter < voter_count; voter++)
+    {
+        for (int cand = 0; cand < candidate_count; cand++)
+        {
+            if (strcmp(preference[voter][rank], candidates[cand].Name) == 0)
+            {
+                candidates[cand].Votes++;
+                break;
+            }
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
 
 bool print_winner()
