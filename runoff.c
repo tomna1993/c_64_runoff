@@ -15,8 +15,8 @@ struct candidate
     bool    Eliminated;
 };
 
+bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count);
 
-bool vote(int voter, int rankm, char name[MAX_CHARS]);
 
 int main(int argc, char *argv[])
 {
@@ -28,7 +28,9 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    struct candidate candidates[MAX_CANDIDATES];
+    // Create a candidates struct to hold informations about the candidates 
+    struct candidate candidates[candidate_count];
+
 
     // Save candidate names into structure
     for (int i = 0; i < candidate_count; i++)
@@ -39,40 +41,81 @@ int main(int argc, char *argv[])
         candidates[i].Eliminated = false;
     }
 
-    for (int i = 0; i < candidate_count; i++)
+    int number_of_voters;
+
+    do
     {
-        printf ("%s\n", candidates[i].Name);
-    }
+        number_of_voters = get_int("Number of voters: ");
+        
+    } while (number_of_voters < 0 || number_of_voters > MAX_VOTERS);
+
+    printf ("\n");
     
+    const int voter_count = number_of_voters;
+
+    // Create an array to hold the preferences of voters
+    char preferences[voter_count][candidate_count][MAX_CHARS];
+
+    // LOOP to ask for votes
+    for (int voter = 0; voter < voter_count; voter++)
+    {
+        for (int rank = 0; rank < candidate_count; rank++)
+        {
+            bool valid_vote;
+
+            do
+            {
+                char name[MAX_CHARS];
+                
+                strcpy(name, get_string("Rank %i: ", rank + 1));
+
+                valid_vote = vote(voter, rank, name, preferences, candidates, candidate_count);
+
+            } while (valid_vote == false);
+        }
+
+        printf ("\n");
+    }
+
+    return EXIT_SUCCESS;
 }
 
-bool vote(int voter, int rankm, char name[MAX_CHARS])
+
+bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count)
 {
+    for (int i = 0; i < candidate_count; i++)
+    {
+        if (strcmp (name, candidates[i].Name) == 0)
+        {
+            strcpy (preference[voter][rank], name);
+    
+            return true;
+        }
+    }
+
     return false;
 }
+
 
 int tabulate()
 {
-    return 0;
 }
 
-int print_winner()
+bool print_winner()
 {
-    return 0;
 }
+
 
 int find_min()
 {
-    int min;
-    return min;
 }
 
-bool is_tie(int min)
+
+bool is_tie()
 {
-    return false;
 }
 
-int eliminate(int min)
+
+int eliminate()
 {
-    return 0;
 }
