@@ -17,6 +17,8 @@ struct candidate
 
 bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count);
 int tabulate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], int voter_count, struct candidate candidates[MAX_CANDIDATES], int candidate_count);
+bool print_winner(struct candidate candidates[MAX_CANDIDATES], int candidate_count, int required_votes_to_win);
+
 
 int main(int argc, char *argv[])
 {
@@ -81,6 +83,8 @@ int main(int argc, char *argv[])
 
     tabulate(preferences, voter_count, candidates, candidate_count);
 
+    print_winner(candidates, candidate_count, required_votes_to_win);
+
     return EXIT_SUCCESS;
 }
 
@@ -120,8 +124,18 @@ int tabulate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], int voter_c
     return EXIT_SUCCESS;
 }
 
-bool print_winner()
+bool print_winner(struct candidate candidates[MAX_CANDIDATES], int candidate_count, int required_votes_to_win)
 {
+    for (int cand = 0; cand < candidate_count; cand++)
+    {
+        if (candidates[cand].Votes >= required_votes_to_win)
+        {
+            printf ("%s\n", candidates[cand].Name);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
