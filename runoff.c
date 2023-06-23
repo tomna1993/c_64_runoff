@@ -19,7 +19,8 @@ bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS]
 int tabulate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], int voter_count, struct candidate candidates[MAX_CANDIDATES], int candidate_count);
 bool print_winner(struct candidate candidates[MAX_CANDIDATES], int candidate_count, int required_votes_to_win);
 int find_min(struct candidate candidates[MAX_CANDIDATES], int candidate_count);
-
+bool is_tie(struct candidate candidates[MAX_CANDIDATES], int candidate_count, int min_vote);
+int eliminate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count, int voter_count, int min_vote);
 
 int main(int argc, char *argv[])
 {
@@ -82,18 +83,38 @@ int main(int argc, char *argv[])
     // Total votes required to win the election
     int required_votes_to_win = (voter_count * 0.5) + 1;
 
-    tabulate(preferences, voter_count, candidates, candidate_count);
-
-    bool found_winner = print_winner(candidates, candidate_count, required_votes_to_win);
-
-    if (found_winner)
+    while(true)
     {
-        return EXIT_SUCCESS;
+        tabulate(preferences, voter_count, candidates, candidate_count);
+
+        bool found_winner = print_winner(candidates, candidate_count, required_votes_to_win);
+
+        if (found_winner)
+        {
+            return EXIT_SUCCESS;
+        }
+
+        int min_vote = find_min(candidates, candidate_count);
+
+        bool tie = is_tie(candidates, candidate_count, min_vote);
+
+        if (tie)
+        {
+            for (int cand = 0; cand < candidate_count; cand++)
+            {
+                if (candidates[cand].Eliminated)
+                {
+                    continue;
+                }
+
+                printf ("%s\n", candidates[cand].Name);
+            }
+
+            return EXIT_SUCCESS;
+        }
+
+        eliminate(preferences, candidates, candidate_count, voter_count, min_vote);
     }
-
-    int min_vote = find_min(candidates, candidate_count);
-
-    printf ("Min votes: %i\n", min_vote);
 
     return EXIT_FAILURE;
 }
@@ -114,18 +135,35 @@ bool vote(int voter, int rank, char name[MAX_CHARS], char preference[MAX_VOTERS]
     return false;
 }
 
-
 int tabulate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], int voter_count, struct candidate candidates[MAX_CANDIDATES], int candidate_count)
 {
-    const int rank = 0;
+    // Clear votes
+    for (int cand = 0; cand < candidate_count; cand++)
+    {
+        candidates[cand].Votes = 0;
+    }
 
     for (int voter = 0; voter < voter_count; voter++)
     {
-        for (int cand = 0; cand < candidate_count; cand++)
+        bool vote_done = false;
+
+        for (int rank = 0; rank < candidate_count; rank++)
         {
-            if (strcmp(preference[voter][rank], candidates[cand].Name) == 0)
+            for (int cand = 0; cand < candidate_count; cand++)
             {
-                candidates[cand].Votes++;
+                if (!candidates[cand].Eliminated && strcmp(preference[voter][rank], candidates[cand].Name) == 0)
+                {
+                    candidates[cand].Votes++;
+
+                    vote_done = true;
+
+                    break;
+                }
+            }
+
+            // Go to the next voter if voting has been done for the actual voter
+            if (vote_done)
+            {
                 break;
             }
         }
@@ -138,7 +176,7 @@ bool print_winner(struct candidate candidates[MAX_CANDIDATES], int candidate_cou
 {
     for (int cand = 0; cand < candidate_count; cand++)
     {
-        if (candidates[cand].Votes >= required_votes_to_win)
+        if (!candidates[cand].Eliminated && candidates[cand].Votes >= required_votes_to_win)
         {
             printf ("%s\n", candidates[cand].Name);
             return true;
@@ -148,15 +186,28 @@ bool print_winner(struct candidate candidates[MAX_CANDIDATES], int candidate_cou
     return false;
 }
 
-
 int find_min(struct candidate candidates[MAX_CANDIDATES], int candidate_count)
 {
-    int cand = 0;
+    int min_votes = 0;
 
-    int min_votes = candidates[cand++].Votes;
-
-    for (; cand < candidate_count;cand++)
+    for (int cand = 0; cand < candidate_count; cand++)
     {
+        if (candidates[cand].Eliminated)
+        {
+            continue;
+        }
+
+        min_votes = candidates[cand].Votes;
+        break;
+    }
+
+    for (int cand = 0; cand < candidate_count; cand++)
+    {
+        if (candidates[cand].Eliminated)
+        {
+            continue;
+        }
+
         if (candidates[cand].Votes < min_votes)
         {
             min_votes = candidates[cand].Votes;
@@ -166,12 +217,57 @@ int find_min(struct candidate candidates[MAX_CANDIDATES], int candidate_count)
     return min_votes;
 }
 
-
-bool is_tie()
+bool is_tie(struct candidate candidates[MAX_CANDIDATES], int candidate_count, int min_vote)
 {
+    int count_candidates_with_min_vote = 0;
+
+    int active_candidate_count = 0;
+
+    for (int cand = 0; cand < candidate_count; cand++)
+    {
+        if (candidates[cand].Eliminated)
+        {
+            continue;
+        }
+
+        if (candidates[cand].Votes == min_vote)
+        {
+            count_candidates_with_min_vote++;
+        }
+
+        active_candidate_count++;
+    }
+
+    // DEBUG
+    // printf ("Candidates with min votes: %i\n", count_candidates_with_min_vote);
+    // printf ("Active candidates: %i\n", active_candidate_count);
+
+    // All of the candidates have the same amount of votes 
+    if (count_candidates_with_min_vote == active_candidate_count)
+    {
+        return true;   
+    }
+
+    return false;
 }
 
-
-int eliminate()
+int eliminate(char preference[MAX_VOTERS][MAX_CANDIDATES][MAX_CHARS], struct candidate candidates[MAX_CANDIDATES], int candidate_count, int voter_count, int min_vote)
 {
+    for (int cand = 0; cand < candidate_count; cand++)
+    {
+        if (candidates[cand].Eliminated)
+        {
+            continue;
+        }
+
+        if (candidates[cand].Votes == min_vote)
+        {
+            candidates[cand].Eliminated = true;
+
+            // DEBUG
+            // printf ("%s has been eliminated!\n", candidates[cand].Name);
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
